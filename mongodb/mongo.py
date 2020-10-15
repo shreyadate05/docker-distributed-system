@@ -1,5 +1,10 @@
+import os
 import pymongo  # package for working with MongoDB
-client = pymongo.MongoClient("mongodb://localhost:27017/")
+
+mongodb_uri = os.getenv('MONGODB_URI', default='mongodb://localhost:27017/')
+client = pymongo.MongoClient(mongodb_uri)
+
+#client = pymongo.MongoClient("mongodb://localhost:27017/")
 db = client["customersdb"]
 customers = db["customers"]
 customers_list = [
