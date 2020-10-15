@@ -57,3 +57,18 @@ services:
     # Here, we want the 'client' service to wait until the 'server' service is ready.
     depends_on:
       - server
+
+# Third service (container): the db.
+# We use the keyword 'mongo' for the server.
+  mongo:
+    # Here 'mongodb/ corresponds to the path to the mongodb folder
+    # that contains the Dockerfile to use.
+    build: mongodb/
+
+    # The command to execute once the image is created.
+    # The following command will execute "python ./client.py".
+    command: python ./mongo.py
+
+    # The keyword 'network_mode' is used to define the network type.
+    # Here we define that the container can access to the 'localhost' of the computer.
+    network_mode: host
