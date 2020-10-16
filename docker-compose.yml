@@ -1,32 +1,33 @@
-# A docker-compose must always start by the version tag.
-# We use "3" because it's the last version at this time.
-version: "3"
+version: '3.1'
 
 services:
-
-  server:
-    build: server/
-    command: python ./server.py
+  master:
+    build: master/
+    command: python ./init.py
+    command: python ./master.py
     ports:
       - 1234:1234
 
-  client:
-    build: client/
-    command: python ./client.py
-    network_mode: host
-    depends_on:
-      - server
-
-
-  mongo:
-    image: mongo:latest
-    build: mongodb/
-    command: python3 ./mongo.py
-    network_mode: host
-    volumes:
-      - mongo:/data/db
+  slave:
+    build: slave/
+    command: python ./slave.py
     ports:
-      - "27017:27017"
-
-volumes:
+      - 1234:1234
+    depends_on: 
+      master
+    
   mongo:
+    image: mongo
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example
+
+  mongo-express:
+    image: mongo-express
+    restart: always
+    ports:
+      - 8081:8081
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: root
+      ME_CONFIG_MONGODB_ADMINPASSWORD: example
