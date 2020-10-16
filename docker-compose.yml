@@ -1,33 +1,41 @@
 version: '3.1'
 
 services:
-  master:
-    build: master/
-    command: python ./init.py
-    command: python ./master.py
-    ports:
-      - 1234:1234
-
-  slave:
-    build: slave/
-    command: python ./slave.py
-    ports:
-      - 1234:1234
-    depends_on: 
-      - master
-    
   mongo:
     image: mongo
+    container_name: mongo
     restart: always
+    command: --quiet
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: example
+    command: --quiet
 
   mongo-express:
     image: mongo-express
+    container_name: mongo-express
     restart: always
     ports:
       - 8081:8081
     environment:
+      ME_CONFIG_MONGODB_SERVER: mongo
       ME_CONFIG_MONGODB_ADMINUSERNAME: root
       ME_CONFIG_MONGODB_ADMINPASSWORD: example
+    links:
+      - "mongo"
+
+  master:
+    build: master/
+    container_name: master
+    restart: always
+    command: bash -c "python ./init.py && python ./master.py"
+    ports:
+      - 2345:2345
+
+  slave:
+    build: slave/
+    command: python ./slave.py
+    links:
+      - "master"
+    depends_on: 
+      - master

@@ -11,11 +11,11 @@ FROM python:latest
 # Here we put files at the image '/server/' folder.
 ADD master.py /master/
 ADD init.py /master/
+ADD index.html /master/
 
 
 RUN pip install pymongo
 
-# I would like to introduce something new, the 'WORKDIR' command.
-# This command changes the base directory of your image.
-# Here we define '/server/' as base directory (where all commands will be executed).
+EXPOSE 2345
+
 WORKDIR /master/
