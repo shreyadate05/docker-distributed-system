@@ -18,9 +18,9 @@ class ClientThread(threading.Thread):
         self.port = port
         self.socket = socket 
         self.client = pymongo.MongoClient("mongodb://root:example@mongo:27017")
-        # self.db = self.client["TasksDB"]
-        # self.tasks = self.db["tasks"]
-        # print("tasks list: ", tasks)
+        self.db = self.client["TasksDB"]
+        self.tasks = self.db["tasks"]
+        print("tasks list: ", self.tasks)
         print("[+] New thread started for " + self.ip + ":" + str(self.port))
 
     def run(self):    
@@ -33,7 +33,7 @@ class ClientThread(threading.Thread):
 
 def startServer():
     host = socket.gethostname()
-    print("hostname is: ", host)
+    print("hostname is: ", str(host))
     port = 2345
     tcpsock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     tcpsock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
