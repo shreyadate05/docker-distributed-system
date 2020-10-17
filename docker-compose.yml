@@ -38,6 +38,8 @@ services:
       PYTHONUNBUFFERED: 1
     ports:
       - 2345:2345
+    depends_on: 
+      - init
 
   slave:
     build: slave/
