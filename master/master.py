@@ -10,6 +10,7 @@ import threading
 import socketserver
 import pickle
 import time
+from bson.objectid import ObjectId
 
 
 class ClientThread(threading.Thread):
@@ -40,11 +41,11 @@ class ClientThread(threading.Thread):
             print("[MASTER]" + "Response sent by " + str(threading.get_ident()) + ": " + str(clientStatus))
             if clientStatus["status"] == "success":
                 print("[MASTER]" + taskName + " completed by slave " + str(threading.get_ident()))
-                data = self.tasks.find_one_and_update({"_id":clientStatus["clientId"]}, {"$set": {"state" : "success"}})
+                data = self.tasks.find_one_and_update({"_id":ObjectId(clientStatus["clientId"])}, {"$set": {"state" : "success"}})
         
         except socket.timeout:
             print("[MASTER] Slave " + str(threading.get_ident()) + " did not complete the assigned the task.")
-            data = self.tasks.find_one_and_update({"_id":taskId}, {"$set": {"state" : "killed"}})
+            data = self.tasks.find_one_and_update({"_id": ObjectId(taskId)}, {"$set": {"state" : "killed"}})
         
         except Exception as e:
             print("[MASTER] Exception occurred!")

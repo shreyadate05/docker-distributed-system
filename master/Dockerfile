@@ -11,9 +11,9 @@ FROM python:latest
 # Here we put files at the image '/server/' folder.
 ADD master.py /master/
 
-RUN pip uninstall bson
-RUN pip uninstall pymongo
 RUN pip install pymongo
+RUN pip install bson
+
 
 EXPOSE 2345
 
