@@ -22,6 +22,7 @@ class ClientThread(threading.Thread):
         self.db = self.client["TasksDB"]
         self.tasks = self.db.tasks
         time.sleep(3)
+        print()
         print("[+] New thread started for " + self.ip + ":" + str(self.port))
 
     def run(self): 
@@ -31,7 +32,7 @@ class ClientThread(threading.Thread):
             print("data is: ", data)
             taskName = data["taskname"]
             self.socket.send(pickle.dumps(data))
-            print("[MASTER]" + taskName + " assigned to slave " + str(threading.get_ident()))
+            print("[MASTER |  " +  str(threading.get_ident()) + "] " + taskName + " assigned to slave ")
 
             listen = True
             while listen:
@@ -39,18 +40,18 @@ class ClientThread(threading.Thread):
                 if status:
                     listen = False
                     clientStatus = pickle.loads(status)
-                    print("[MASTER]" + "Response sent by " + str(threading.get_ident()) + ": " + str(clientStatus))
+                    print("[MASTER |  " +  str(threading.get_ident()) + "] " + "Response sent by slave: " + str(clientStatus))
                     if clientStatus["status"] == "success":
-                        print("[MASTER]" + taskName + " completed by slave " + str(threading.get_ident()))
+                        print("[MASTER |  " +  str(threading.get_ident()) + "] " + taskName + " completed by slave ")
                         data = self.tasks.find_one_and_update({"taskname":taskName}, {"$set": {"state" : "success"}})
         
         except socket.timeout:
-            print("[MASTER] Slave " + str(threading.get_ident()) + " did not complete the assigned the task.")
+            print("[MASTER |  " +  str(threading.get_ident()) + "] " + " Task incomplete due to timeout.")
             data = self.tasks.find_one_and_update({{"taskname":taskName}}, {"$set": {"state" : "killed"}})
         
         except Exception as e:
-            print("[MASTER] Exception occurred!")
-            print(e)
+            print("[MASTER |  " +  str(threading.get_ident()) + "] " + " Task incomplete due to exception: ", e)
+            data = self.tasks.find_one_and_update({{"taskname":taskName}}, {"$set": {"state" : "killed"}})
 
 def startServer():
     host = socket.gethostname()
