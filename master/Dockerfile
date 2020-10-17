@@ -12,8 +12,6 @@ FROM python:latest
 ADD master.py /master/
 
 RUN pip install pymongo
-RUN pip install bson
-
 
 EXPOSE 2345
 
