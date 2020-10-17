@@ -33,7 +33,9 @@ services:
     build: master/
     container_name: master
     restart: always
-    command: python ./master.py
+    command: python -u ./master.py
+    environment: 
+      PYTHONUNBUFFERED: 1
     ports:
       - 2345:2345
 

@@ -9,6 +9,7 @@ import socket
 import threading
 import socketserver
 import pickle
+import time
 
 
 class ClientThread(threading.Thread):
@@ -21,12 +22,12 @@ class ClientThread(threading.Thread):
         self.client = pymongo.MongoClient("mongodb://root:example@mongo:27017")
         self.db = self.client["TasksDB"]
         self.tasks = self.db.tasks
+        time.sleep(2)
         print("[+] New thread started for " + self.ip + ":" + str(self.port))
 
     def run(self): 
         taskId = -1 
-        try:  
-            print("Connection from : " + self.ip + ":" + str(self.port))
+        try:
             data = self.tasks.find_one_and_update({"state":"created"}, {"$set": {"state" : "running"}})
             print("data is: ", data)
             taskId = data["_id"]
@@ -34,31 +35,30 @@ class ClientThread(threading.Thread):
             self.socket.send(pickle.dumps(data))
             print("[MASTER]" + taskName + " assigned to slave " + str(threading.get_ident()))
 
-            listen = True
-            while listen:
-                status = self.socket.recv(2048)
-                if status:
-                    listen = False
-                    clientStatus = pickle.loads(status)
-                    if clientStatus["status"] == "success":
-                        print("[MASTER]" + taskName + " completed by slave " + str(threading.get_ident()))
-                        data = self.tasks.find_one_and_update({"_id":clientStatus["clientId"]}, {"$set": {"state" : "success"}})
+            status = self.socket.recv(2048)
+            clientStatus = pickle.loads(status)
+            print("[MASTER]" + "Response sent by " + str(threading.get_ident()) + ": " + str(clientStatus))
+            if clientStatus["status"] == "success":
+                print("[MASTER]" + taskName + " completed by slave " + str(threading.get_ident()))
+                data = self.tasks.find_one_and_update({"_id":clientStatus["clientId"]}, {"$set": {"state" : "success"}})
+        
+        except socket.timeout:
+            print("[MASTER] Slave " + str(threading.get_ident()) + " did not complete the assigned the task.")
+            data = self.tasks.find_one_and_update({"_id":taskId}, {"$set": {"state" : "killed"}})
+        
         except Exception as e:
-            if e == socket.timeout:
-                print("[MASTER] Slave " + str(threading.get_ident()) + " did not complete the assigned the task.")
-                data = self.tasks.find_one_and_update({"_id":taskId}, {"$set": {"state" : "killed"}})
+            print("[MASTER] Exception occurred!")
+            print(e)
 
 def startServer():
     host = socket.gethostname()
-    print("hostname is: ", str(host))
     port = 2345
     tcpsock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     tcpsock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     tcpsock.bind((host,port))
     threads = []
     while True:
-        tcpsock.listen(4)
-        print("\nListening for incoming connections...")
+        tcpsock.listen()
         (clientsock, (ip, port)) = tcpsock.accept()
         newthread = ClientThread(ip, port, clientsock)
         newthread.start()
