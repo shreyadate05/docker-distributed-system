@@ -21,8 +21,7 @@ class ClientThread(threading.Thread):
         self.client = pymongo.MongoClient("mongodb://root:example@mongo:27017")
         self.db = self.client["TasksDB"]
         self.tasks = self.db.tasks
-        time.sleep(2)
-        print("tasksDB:", self.tasks)
+        time.sleep(3)
         print("[+] New thread started for " + self.ip + ":" + str(self.port))
 
     def run(self): 
