@@ -8,6 +8,7 @@ import pymongo
 import socket
 import threading
 import socketserver
+import pickle
 
 
 class ClientThread(threading.Thread):
@@ -19,16 +20,14 @@ class ClientThread(threading.Thread):
         self.socket = socket 
         self.client = pymongo.MongoClient("mongodb://root:example@mongo:27017")
         self.db = self.client["TasksDB"]
-        self.tasks = self.db["tasks"]
+        self.tasks = self.db.tasks
         print("tasks list: ", self.tasks)
         print("[+] New thread started for " + self.ip + ":" + str(self.port))
 
     def run(self):    
         print("Connection from : " + self.ip + ":" + str(self.port))
-        data = self.socket.recv(2048)
-        print("Client sent : ", data.decode())
-        data = "\nWelcome to the server\n\n"
-        self.socket.send(data.encode())
+        data = self.tasks.find_one({"state":"created"})
+        self.socket.send(pickle.dumps(data))
         print("Client disconnected...")
 
 def startServer():
