@@ -24,11 +24,17 @@ services:
     links:
       - "mongo"
 
+  init:
+    build: init/
+    container_name: init
+    restart: always
+    command: python ./init.py
+          
   master:
     build: master/
     container_name: master
     restart: always
-    command: bash -c "python ./init.py && python ./master.py"
+    command: python ./master.py
     ports:
       - 2345:2345
 

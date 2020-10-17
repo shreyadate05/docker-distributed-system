@@ -9,10 +9,8 @@ FROM python:latest
 # Just a remember, the first parameter 'server.py' is the name of the file on the host.
 # The second parameter '/server/' is the path where to put the file on the image.
 # Here we put files at the image '/server/' folder.
-ADD master.py /master/
+ADD init.py /init/
 
 RUN pip install pymongo
 
-EXPOSE 2345
-
-WORKDIR /master/
+WORKDIR /init/
