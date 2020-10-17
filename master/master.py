@@ -10,8 +10,6 @@ import threading
 import socketserver
 import pickle
 import time
-from pymongo.objectid import ObjectId
-
 
 class ClientThread(threading.Thread):
 
@@ -24,28 +22,32 @@ class ClientThread(threading.Thread):
         self.db = self.client["TasksDB"]
         self.tasks = self.db.tasks
         time.sleep(2)
+        print("tasksDB:", self.tasks)
         print("[+] New thread started for " + self.ip + ":" + str(self.port))
 
     def run(self): 
-        taskId = -1 
+        taskName = ""
         try:
             data = self.tasks.find_one_and_update({"state":"created"}, {"$set": {"state" : "running"}})
             print("data is: ", data)
-            taskId = data["_id"]
             taskName = data["taskname"]
             self.socket.send(pickle.dumps(data))
             print("[MASTER]" + taskName + " assigned to slave " + str(threading.get_ident()))
 
-            status = self.socket.recv(2048)
-            clientStatus = pickle.loads(status)
-            print("[MASTER]" + "Response sent by " + str(threading.get_ident()) + ": " + str(clientStatus))
-            if clientStatus["status"] == "success":
-                print("[MASTER]" + taskName + " completed by slave " + str(threading.get_ident()))
-                data = self.tasks.find_one_and_update({"_id":ObjectId(clientStatus["clientId"])}, {"$set": {"state" : "success"}})
+            listen = True
+            while listen:
+                status = self.socket.recv(2048)
+                if status:
+                    listen = False
+                    clientStatus = pickle.loads(status)
+                    print("[MASTER]" + "Response sent by " + str(threading.get_ident()) + ": " + str(clientStatus))
+                    if clientStatus["status"] == "success":
+                        print("[MASTER]" + taskName + " completed by slave " + str(threading.get_ident()))
+                        data = self.tasks.find_one_and_update({"taskname":taskName}, {"$set": {"state" : "success"}})
         
         except socket.timeout:
             print("[MASTER] Slave " + str(threading.get_ident()) + " did not complete the assigned the task.")
-            data = self.tasks.find_one_and_update({"_id": ObjectId(taskId)}, {"$set": {"state" : "killed"}})
+            data = self.tasks.find_one_and_update({{"taskname":taskName}}, {"$set": {"state" : "killed"}})
         
         except Exception as e:
             print("[MASTER] Exception occurred!")

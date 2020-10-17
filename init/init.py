@@ -5,6 +5,7 @@
 # You don't have to install anything special, these libraries are installed with Python.
 import os
 import pymongo
+import secrets
 
 def updateDB():
     print("[INIT] Connecting to TasksDB")
@@ -17,7 +18,7 @@ def updateDB():
     print("[INIT] Inserting 100 tasks in TasksDB")
     for n in range(0, 100):
         task = {}
-        task["taskname"] = "task " + str(n+1)
+        task["taskname"] = "task_" + str(n+1) + "_" + str(secrets.token_hex(5))
         task["sleeptime"] = 60
         task["state"] = "created"
         task["host"] = "slave " + str(n+1)
