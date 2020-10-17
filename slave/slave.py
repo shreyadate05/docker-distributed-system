@@ -14,18 +14,15 @@ def client_program():
     clientId = task["_id"]
     taskName = task["taskname"]
 
-    print("[" + clientId + "] " + taskName + "Task received from server.")
+    print("[" + str(clientId) + "] " + str(taskName) + "Task received from server.")
     time.sleep(sleepTime)
-    print("[ " + clientId + " ]" + taskName + "Task completed.")
+    print("[ " + str(clientId) + " ]" + str(taskName) + "Task completed.")
 
-    response = {"clientId": clientId, "status": "success"}
+    response = {"clientId": str(clientId), "status": "success"}
     client_socket.send(pickle.dumps(response))
-    #client_socket.close()
+    client_socket.close()
 
 
 if __name__ == '__main__':
     time.sleep(5)
-    cnt = 0
-    while cnt < 5:
-        client_program()
-        cnt = cnt + 1
+    client_program()

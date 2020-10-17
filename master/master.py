@@ -28,15 +28,20 @@ class ClientThread(threading.Thread):
         try:  
             print("Connection from : " + self.ip + ":" + str(self.port))
             data = self.tasks.find_one_and_update({"state":"created"}, {"$set": {"state" : "running"}})
+            print("data is: ", data)
             taskId = data["_id"]
             taskName = data["taskname"]
             self.socket.send(pickle.dumps(data))
-            print("[MASTER]" + taskName + " assigned to slave " + threading.get_ident())
+            print("[MASTER]" + taskName + " assigned to slave " + str(threading.get_ident()))
 
-            status = self.socket.recv(1024)
-            clientStatus = pickle.loads(status)
-            if clientStatus["status"] == "success":
-                data = self.tasks.find_one_and_update({"_id":clientStatus["clientId"]}, {"$set": {"state" : "success"}})
+            listen = True
+            while listen:
+                status = self.socket.recv(1024)
+                if status:
+                    listen = False
+                    clientStatus = pickle.loads(status)
+                    if clientStatus["status"] == "success":
+                        data = self.tasks.find_one_and_update({"_id":clientStatus["clientId"]}, {"$set": {"state" : "success"}})
             
         except self.socket.timeout:
             data = self.tasks.find_one_and_update({"_id":taskId}, {"$set": {"state" : "killed"}})
