@@ -26,7 +26,7 @@ class ClientThread(threading.Thread):
 
     def run(self):    
         print("Connection from : " + self.ip + ":" + str(self.port))
-        data = self.tasks.find_one({"state":"created"})
+        data = self.tasks.find_one_and_update({"state":"created"}, {"$set": {"state" : "running"}})
         self.socket.send(pickle.dumps(data))
         print("Client disconnected...")
 
