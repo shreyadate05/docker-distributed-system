@@ -36,15 +36,17 @@ class ClientThread(threading.Thread):
 
             listen = True
             while listen:
-                status = self.socket.recv(1024)
+                status = self.socket.recv(2048)
                 if status:
                     listen = False
                     clientStatus = pickle.loads(status)
                     if clientStatus["status"] == "success":
+                        print("[MASTER]" + taskName + " completed by slave " + str(threading.get_ident()))
                         data = self.tasks.find_one_and_update({"_id":clientStatus["clientId"]}, {"$set": {"state" : "success"}})
-            
-        except self.socket.timeout:
-            data = self.tasks.find_one_and_update({"_id":taskId}, {"$set": {"state" : "killed"}})
+        except Exception as e:
+            if e == socket.timeout:
+                print("[MASTER] Slave " + str(threading.get_ident()) + " did not complete the assigned the task.")
+                data = self.tasks.find_one_and_update({"_id":taskId}, {"$set": {"state" : "killed"}})
 
 def startServer():
     host = socket.gethostname()
