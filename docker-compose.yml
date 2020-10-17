@@ -27,7 +27,6 @@ services:
   init:
     build: init/
     container_name: init
-    restart: always
     command: python ./init.py
           
   master:

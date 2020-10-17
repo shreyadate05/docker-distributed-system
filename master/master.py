@@ -21,14 +21,25 @@ class ClientThread(threading.Thread):
         self.client = pymongo.MongoClient("mongodb://root:example@mongo:27017")
         self.db = self.client["TasksDB"]
         self.tasks = self.db.tasks
-        print("tasks list: ", self.tasks)
         print("[+] New thread started for " + self.ip + ":" + str(self.port))
 
-    def run(self):    
-        print("Connection from : " + self.ip + ":" + str(self.port))
-        data = self.tasks.find_one_and_update({"state":"created"}, {"$set": {"state" : "running"}})
-        self.socket.send(pickle.dumps(data))
-        print("Client disconnected...")
+    def run(self): 
+        taskId = -1 
+        try:  
+            print("Connection from : " + self.ip + ":" + str(self.port))
+            data = self.tasks.find_one_and_update({"state":"created"}, {"$set": {"state" : "running"}})
+            taskId = data["_id"]
+            taskName = data["taskname"]
+            self.socket.send(pickle.dumps(data))
+            print("[MASTER]" + taskName + " assigned to slave " + threading.get_ident())
+
+            status = self.socket.recv(1024)
+            clientStatus = pickle.loads(status)
+            if clientStatus["status"] == "success":
+                data = self.tasks.find_one_and_update({"_id":clientStatus["clientId"]}, {"$set": {"state" : "success"}})
+            
+        except self.socket.timeout:
+            data = self.tasks.find_one_and_update({"_id":taskId}, {"$set": {"state" : "killed"}})
 
 def startServer():
     host = socket.gethostname()

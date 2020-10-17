@@ -6,21 +6,26 @@
 import os
 import pymongo
 
-print("[INIT] Connecting to TasksDB")
+def updateDB():
+    print("[INIT] Connecting to TasksDB")
 
-client = pymongo.MongoClient("mongodb://root:example@mongo:27017")
-db = client["TasksDB"]
-tasks = db["tasks"]
-tasks_list = []
+    client = pymongo.MongoClient("mongodb://root:example@mongo:27017")
+    db = client["TasksDB"]
+    tasks = db["tasks"]
+    tasks_list = []
 
-print("[INIT] Inserting 100 tasks in TasksDB")
-for n in range(0, 100):
-    task = {}
-    task["taskname"] = "task " + str(n+1)
-    task["sleeptime"] = 60
-    task["state"] = "created"
-    task["host"] = "slave " + str(n+1)
-    tasks_list.append(dict(task))
+    print("[INIT] Inserting 100 tasks in TasksDB")
+    for n in range(0, 100):
+        task = {}
+        task["taskname"] = "task " + str(n+1)
+        task["sleeptime"] = 60
+        task["state"] = "created"
+        task["host"] = "slave " + str(n+1)
+        tasks_list.append(dict(task))
 
-x = tasks.insert_many(tasks_list)
-print("[INIT] Inserted 100 tasks in TasksDB")
+    x = tasks.insert_many(tasks_list)
+    print("[INIT] Inserted 100 tasks in TasksDB")
+
+if __name__ == '__main__':
+    updateDB()
+    exit()
