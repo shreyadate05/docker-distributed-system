@@ -2,8 +2,7 @@ version: '3.1'
 
 services:
   mongo:
-    image: mongo
-    container_name: mongo
+    image: schedulerContainer.azurecr.io/mongo
     restart: always
     command: --quiet
     environment:
@@ -12,8 +11,7 @@ services:
     command: --quiet
 
   mongo-express:
-    image: mongo-express
-    container_name: mongo-express
+    image: schedulerContainer.azurecr.io/mongo-express
     restart: always
     ports:
       - 8081:8081
@@ -25,13 +23,13 @@ services:
       - "mongo"
 
   init:
-    build: init/
-    container_name: init
+    image: schedulerContainer.azurecr.io/init
+    build: init
     command: python ./init.py
           
   master:
-    build: master/
-    container_name: master
+    image: master
+    build: master
     restart: always
     command: python -u ./master.py
     environment: 
@@ -42,7 +40,8 @@ services:
       - init
 
   slave:
-    build: slave/
+    image: schedulerContainer.azurecr.io/slave
+    build: slave
     command: python ./slave.py
     links:
       - "master"
